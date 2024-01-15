@@ -29,6 +29,22 @@ const commands = {
 
     printTodo(newTodo, newTodoIndex);
   },
+  delete: (rawIndex) => {
+    const indexToBeDeleted = Number.parseInt(rawIndex, 10);
+    const todos = readDatabase();
+
+    if (
+      (!indexToBeDeleted && indexToBeDeleted !== 0) ||
+      !todos[indexToBeDeleted]
+    ) {
+      console.error("Error: invalid index");
+      process.exit(1);
+    }
+
+    const newTodos = todos.filter((_, index) => index !== indexToBeDeleted);
+
+    writeDatabase(newTodos);
+  },
   list: () => {
     const todos = readDatabase();
 
