@@ -1,11 +1,8 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 
-const readDatabase = () => {
-  const json = readFileSync("./db.json", { encoding: "utf-8" });
-  const todos = JSON.parse(json);
-
-  return todos;
-};
+const readDatabase = () =>
+  readFile("./db.json", { encoding: "utf-8" }).then((data) => JSON.parse(json));
 const writeDatabase = (todos) => {
   const json = JSON.stringify(todos);
 
@@ -45,20 +42,16 @@ const commands = {
 
     writeDatabase(newTodos);
   },
-  list: () => {
-    const todos = readDatabase();
-
-    todos.forEach(printTodo);
-  },
+  list: () => readDatabase().then((todos) => todos.forEach(printTodo)),
 };
 
 // run
 const [commandName, ...args] = process.argv.slice(2);
 const command = commands[commandName];
 
-if (!command) {
-  console.error(`Error: no such command "${commandName}"`);
-  process.exit(1);
-}
+// if (!command) {
+//   console.error(`Error: no such command "${commandName}"`);
+//   process.exit(1);
+// }
 
-command(...args);
+// command(...args);
