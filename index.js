@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 
 const readDatabase = () =>
-  readFile("./db.json", { encoding: "utf-8" }).then((data) => JSON.parse(json));
+  readFile("./db.json", { encoding: "utf-8" }).then((json) => JSON.parse(json));
 const writeDatabase = (todos) => {
   const json = JSON.stringify(todos);
 
@@ -20,27 +20,34 @@ const commands = {
       process.exit(1);
     }
 
-    const todos = readDatabase();
-    const newTodos = [...todos, newTodo];
-    const newTodoIndex = writeDatabase(newTodos);
+    readDatabase()
+      .then((todos) => {
+        const newTodos = [...todos, newTodo];
 
-    printTodo(newTodo, newTodoIndex);
+        return writeDatabase(newTodos);
+      })
+      .then((newTodoIndex) => {
+        printTodo(newTodo, newTodoIndex);
+      });
   },
   delete: (rawIndex) => {
     const indexToBeDeleted = Number.parseInt(rawIndex, 10);
-    const todos = readDatabase();
+    readDatabase()
+      .then((todos) => {
+        if (
+          (!indexToBeDeleted && indexToBeDeleted !== 0) ||
+          !todos[indexToBeDeleted]
+        ) {
+          console.error("Error: invalid index");
+          process.exit(1);
+        }
 
-    if (
-      (!indexToBeDeleted && indexToBeDeleted !== 0) ||
-      !todos[indexToBeDeleted]
-    ) {
-      console.error("Error: invalid index");
-      process.exit(1);
-    }
+        const newTodos = todos.filter((_, index) => index !== indexToBeDeleted);
 
-    const newTodos = todos.filter((_, index) => index !== indexToBeDeleted);
-
-    writeDatabase(newTodos);
+        return newTodos;
+      })
+      // NOTE: cleaner version .then(writeDatabase);
+      .then((todos) => writeDatabase(todos));
   },
   list: () => readDatabase().then((todos) => todos.forEach(printTodo)),
 };
@@ -49,9 +56,9 @@ const commands = {
 const [commandName, ...args] = process.argv.slice(2);
 const command = commands[commandName];
 
-// if (!command) {
-//   console.error(`Error: no such command "${commandName}"`);
-//   process.exit(1);
-// }
+if (!command) {
+  console.error(`Error: no such command "${commandName}"`);
+  process.exit(1);
+}
 
-// command(...args);
+command(...args);
