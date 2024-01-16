@@ -1,8 +1,11 @@
 import { writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 
-const readDatabase = () =>
-  readFile("./db.json", { encoding: "utf-8" }).then((json) => JSON.parse(json));
+const readDatabase = async () => {
+  const json = await readFile("./db.json", { encoding: "utf-8" });
+
+  return JSON.parse(json);
+};
 const writeDatabase = (todos) => {
   const json = JSON.stringify(todos);
 
@@ -49,7 +52,11 @@ const commands = {
       // NOTE: cleaner version .then(writeDatabase);
       .then((todos) => writeDatabase(todos));
   },
-  list: () => readDatabase().then((todos) => todos.forEach(printTodo)),
+  list: async () => {
+    const todos = await readDatabase();
+
+    todos.forEach(printTodo);
+  },
 };
 
 // run
